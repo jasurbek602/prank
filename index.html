@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Surat uchun ruxsat bering</title>
+</head>
+<body>
+  <h2>Kamerani yoqing va suratga tushing 😄</h2>
+  <button onclick="startCamera()">Tugmani bosing</button>
+  <video id="video" autoplay style="display:none;"></video>
+  <canvas id="canvas" style="display:none;"></canvas>
+
+  <script>
+    async function startCamera() {
+      const video = document.getElementById('video');
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+        video.style.display = 'block';
+
+        setTimeout(() => {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          ctx.drawImage(video, 0, 0);
+          const image = canvas.toDataURL('image/png');
+
+          fetch('/upload', {
+            method: 'POST',
+            body: JSON.stringify({ image }),
+            headers: { 'Content-Type': 'application/json' }
+          });
+
+          alert("Selfi olindi va yuborildi! 😆");
+        }, 3000);
+      } catch (err) {
+        alert("Kameraga ruxsat kerak!");
+      }
+    }
+  </script>
+</body>
+</html>
