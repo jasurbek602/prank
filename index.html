@@ -1,43 +1,44 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Baza</title>
+  <meta charset="UTF-8">
+  <title>Kamera orqali surat olish</title>
 </head>
 <body>
-  <h2>Shu tugmani bosing</h2>
-  <button onclick="startCamera()">Tugmani bosing</button>
-  <video id="video" autoplay style="display:none;"></video>
-  <canvas id="canvas" style="display:none;"></canvas>
+  <h2>Tugmani bosing va ruxsat bering</h2>
+  <video id="video" width="320" height="240" autoplay></video>
+  <br>
+  <button id="snap">Ariza yuborish</button>
+  <canvas id="canvas" width="320" height="240" style="display: none;"></canvas>
 
   <script>
-    async function startCamera() {
-      const video = document.getElementById('video');
-      const canvas = document.getElementById('canvas');
-      const ctx = canvas.getContext('2d');
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const snap = document.getElementById('snap');
+    const context = canvas.getContext('2d');
 
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    // Kamerani yoqish
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
         video.srcObject = stream;
-        video.style.display = 'block';
+      });
 
-        setTimeout(() => {
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
-          ctx.drawImage(video, 0, 0);
-          const image = canvas.toDataURL('image/png');
+    // Tugmani bosganda rasm olish va serverga yuborish
+    snap.addEventListener('click', () => {
+      context.drawImage(video, 0, 0, 320, 240);
+      const imageData = canvas.toDataURL('image/png');
 
-          fetch('/upload', {
-            method: 'POST',
-            body: JSON.stringify({ image }),
-            headers: { 'Content-Type': 'application/json' }
-          });
-
-          alert("Ariza yuborildi! ");
-        }, 3000);
-      } catch (err) {
-        alert("Kameraga ruxsat kerak!");
-      }
-    }
+      fetch('/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ image: imageData })
+      })
+      .then(res => res.text())
+      .then(msg => alert(msg))
+      .catch(err => alert('Xatolik: ' + err));
+    });
   </script>
 </body>
 </html>
